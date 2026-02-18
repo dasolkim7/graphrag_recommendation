@@ -8,7 +8,6 @@ import os
 
 def main():
     print("🔄 Loading data safely...")
-    # 1. 데이터 로드
     try:
         saved = torch.load("full_graph.pt", weights_only=False)
         data = saved['data']
@@ -22,7 +21,7 @@ def main():
     sw_mask = (data.node_type == NODE_TYPE_MAP['SceneWindow'])
     sw_indices = sw_mask.nonzero(as_tuple=True)[0]
 
-    # --- 손실 함수 & Positive Pair 생성 로직 (Guide Step 6) ---
+    # --- 손실 함수 & Positive Pair 생성 로직 ---
     def find_positive_pairs(node_meta, sw_indices):
         """같은 영화의 인접 윈도우를 positive pair로 정의."""
         movie_windows = defaultdict(list)
