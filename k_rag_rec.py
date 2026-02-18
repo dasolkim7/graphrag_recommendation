@@ -1,5 +1,5 @@
 import os
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+from dotenv import load_dotenv
 import torch
 import numpy as np
 import faiss
@@ -7,6 +7,9 @@ import openai
 from collections import defaultdict
 from neo4j import GraphDatabase
 import time
+
+# .env 파일 로드
+load_dotenv()
 
 # --- 설정 ---
 # 1. Neo4j & OpenAI
@@ -90,15 +93,13 @@ def generate_recommendation_with_llm(target_movie, subgraphs):
         context_text += "\n"
         
     prompt = f"""
-    You are a movie recommendation expert using a Knowledge Graph.
-    The user watched '{target_movie}'.
-    Based on the following structural paths retrieved from the Knowledge Graph, explain why these candidate movies are similar.
-    Focus on narrative elements (Tropes, Emotions, Phases).
-
-    Knowledge Graph Context:
+    You are a recommendation engine. 
+    User watched '{target_movie}'.
+    Based on these retrieved paths:
     {context_text}
     
-    Please provide a concise recommendation for each candidate.
+    Recommend each candidate in ONE short sentence (max 20 words). 
+    Do NOT write intro/outro. Just list the movies and reasons.
     """
     
     response = client.chat.completions.create(
