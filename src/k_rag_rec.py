@@ -10,7 +10,7 @@ from neo4j import GraphDatabase
 import time
 
 # .env 파일 로드
-load_dotenv()
+load_dotenv(dotenv_path="../.env")
 
 # --- 설정 ---
 # 1. Neo4j & OpenAI
@@ -20,8 +20,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 # 2. 리소스 로드
 print("🔄 Loading resources (Embeddings & Graph Data)...")
-sw_embeddings = np.load("sw_embeddings.npy")
-saved = torch.load("full_graph.pt", weights_only=False)
+sw_embeddings = np.load("../data/sw_embeddings.npy")
+saved = torch.load("../data/full_graph.pt", weights_only=False)
 node_meta = saved['node_meta']
 NODE_TYPE_MAP = saved['NODE_TYPE_MAP']
 

@@ -10,12 +10,20 @@ from neo4j import GraphDatabase
 # --- 설정 ---
 URI = "neo4j+ssc://2bdf163a.databases.neo4j.io:7687"
 AUTH = ("neo4j", "dVRqLgBpDBT3tP37uYphK_zFZRjBHRizDVvRc4LCJRg")
-OUTPUT_FILE = "movie_logic_cache.json"
+
+# 경로 설정 (script 위치 기준)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "../data")
+OUTPUT_FILE = os.path.join(DATA_DIR, "movie_logic_cache.json")
 
 def precompute_all_logic():
     print("🔄 Loading graph data and embeddings...")
+    sw_path = os.path.join(DATA_DIR, "sw_embeddings.npy")
+    graph_path = os.path.join(DATA_DIR, "full_graph.pt")
+    
+    sw_embeddings = np.load(sw_path)
     # 1. 데이터 로드 (영화 목록 확보)
-    saved = torch.load("full_graph.pt", weights_only=False)
+    saved = torch.load(graph_path, weights_only=False)
     node_meta = saved['node_meta']
     NODE_TYPE_MAP = saved['NODE_TYPE_MAP']
     
@@ -32,7 +40,6 @@ def precompute_all_logic():
     
     # 3. 모든 영화 쌍에 대해 미리 계산할 수 없으므로,
     #    각 영화별 '주요 키워드(Trope, Emotion 등)'를 미리 뽑아둠.
-    #    (쌍으로 조회하면 N*N이라 너무 오래 걸림 -> 영화별 요약 정보 저장)
     
     movie_structural_info = {}
     
@@ -46,7 +53,6 @@ def precompute_all_logic():
             ORDER BY weight DESC LIMIT 20
             """
             result = session.run(query, title=movie).data()
-            # 저장 포맷: [{'type': 'Emotion', 'name': 'Sadness', 'weight': 15}, ...]
             movie_structural_info[movie] = result
             
     driver.close()

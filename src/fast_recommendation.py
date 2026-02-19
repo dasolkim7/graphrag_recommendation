@@ -8,18 +8,26 @@ import openai
 from collections import defaultdict
 
 # --- 설정 ---
-CACHE_FILE = "movie_logic_cache.json"
+# CACHE_FILE = "movie_logic_cache.json" # 이 변수는 이제 사용되지 않습니다.
 
 def load_resources():
     print("🔄 Loading resources (Embeddings & Cache)...")
     
-    # 1. 임베딩 및 인덱스 로드 (FAISS)
-    sw_embeddings = np.load("sw_embeddings.npy")
-    saved = torch.load("full_graph.pt", weights_only=False)
+    # 1. 캐시 로드
+    if not os.path.exists("../data/movie_logic_cache.json"):
+        raise FileNotFoundError(f"Run 'precompute_logic.py' first to generate ../data/movie_logic_cache.json")
+        
+    with open("../data/movie_logic_cache.json", "r", encoding="utf-8") as f:
+        movie_logic_cache = json.load(f)
+        
+    # 2. 임베딩 로드 (유사도 점수 계산용)
+    sw_embeddings = np.load("../data/sw_embeddings.npy")
+    # full_graph.pt에서 메타데이터 로드
+    saved = torch.load("../data/full_graph.pt", weights_only=False)
     node_meta = saved['node_meta']
+    NODE_TYPE_MAP = saved['NODE_TYPE_MAP']  # 영화별 센트로이드 계산 (메모리 로드)
     
-    # 영화별 센트로이드 계산 (메모리 로드)
-    sw_mask = (saved['data'].node_type == saved['NODE_TYPE_MAP']['SceneWindow'])
+    sw_mask = (saved['data'].node_type == NODE_TYPE_MAP['SceneWindow'])
     sw_indices = sw_mask.nonzero(as_tuple=True)[0]
     
     movie_to_sw = defaultdict(list)
